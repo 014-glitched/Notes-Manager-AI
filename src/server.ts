@@ -28,7 +28,11 @@ async function startServer() {
 startServer()
 
 app.post("/auth/register", register)
+app.post("/auth/login", login)
 
+app.get("/me", requireAuth, (req, res) => {
+    res.json({ message: `Hello user ${req.user?.id}, you have accessed a protected route!` })
+})
 
 app.listen(PORT, () => {
     console.log(`Server is running at port ${PORT}`)
