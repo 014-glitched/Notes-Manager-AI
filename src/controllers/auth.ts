@@ -57,7 +57,7 @@ export async function register(req: Request, res: Response) {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      console.log("❌ User already exists:", email)
+      console.log("User already exists:", email)
       return res.status(409).json({ error: "Email is already in use" });
     }
 
@@ -66,7 +66,7 @@ export async function register(req: Request, res: Response) {
     const user = await prisma.user.create({
       data: { name, email, password: hashed },
     });
-    console.log("✅ User created:", user.id)
+    console.log("User created:", user.id)
 
     const accessToken = signAccessToken(user.id);
 
@@ -75,8 +75,40 @@ export async function register(req: Request, res: Response) {
       user: { id: user.id, name: user.name, email: user.email },
     });
   } catch (err) {
-        console.error("💥 Register error:", err);
+        console.error("Register error:", err);
         return res.status(500).json({ error: "Registration failed" });
   }
 }
 
+export async function login(req: Request, res: Response) {
+  try {
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ error: "Invalid request" });
+    }
+
+    const { email, password } = parsed.data;
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const accessToken = signAccessToken(user.id);
+
+    return res.json({
+      accessToken,
+      user: { id: user.id, name: user.name, email: user.email },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
