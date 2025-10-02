@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import { testDBConnection } from './config/prisma';
-
+import { requireAuth } from "./middleware/auth";
 
 dotenv.config()
 const app = express();
@@ -28,6 +28,13 @@ async function startServer() {
 startServer()
 
 app.use('/auth', authRoutes)
+
+
+app.get('/me', requireAuth, (req, res) => {
+  res.json({ 
+    message: `Hello user ${req.user?.id}, you have accessed a protected route!`,
+  });
+});
 
 
 app.listen(PORT, () => {
