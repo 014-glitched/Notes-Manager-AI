@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import noteRoutes from './routes/notes';
 import { testDBConnection } from './config/prisma';
 import { requireAuth } from "./middleware/auth";
 
@@ -27,7 +28,8 @@ async function startServer() {
 
 startServer()
 
-app.use('/auth', authRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/notes', requireAuth, noteRoutes)
 
 
 app.get('/me', requireAuth, (req, res) => {
