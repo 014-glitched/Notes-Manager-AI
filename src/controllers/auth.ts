@@ -123,23 +123,32 @@ export async function refreshToken(req: Request, res: Response) {
     const tokenHash = hashToken256(refreshToken)
     console.log(" Looking for token hash in database...");
 
+    // tokenHash is unique in the schema; use findUnique by the unique field then
+    // verify revoked/expiry conditions in application logic.
     const storedToken = await prisma.refreshToken.findUnique({
-      where: {
-        tokenHash,
-        revoked: false,
-        expiresAt: { gt: new Date() }
-      },
+      where: { tokenHash },
       include: { user: true }
     })
 
     if (!storedToken) {
-      console.log(" Refresh token not found or invalid");
+      console.log(" Refresh token not found");
       return res.status(401).json({ error: "Invalid or expired refresh token" });
     }
+
+    if (storedToken.revoked) {
+      console.log(" Refresh token has been revoked for user:", storedToken.user.email);
+      return res.status(401).json({ error: "Invalid or expired refresh token" });
+    }
+
+    if (storedToken.expiresAt <= new Date()) {
+      console.log(" Refresh token has expired for user:", storedToken.user.email);
+      return res.status(401).json({ error: "Invalid or expired refresh token" });
+    }
+
     console.log("Valid refresh token found for user:", storedToken.user.email);
 
     const newAccessToken = signAccessToken(storedToken.userId)
-    console.log("🎫 New access token generated", newAccessToken);
+    console.log("🎫 New access token generated");
 
     return res.json({
       accessToken: newAccessToken,

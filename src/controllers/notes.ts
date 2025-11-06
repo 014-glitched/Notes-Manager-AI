@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import prisma from "../config/prisma";
 import {createNoteSchema, updateNoteSchema} from "../schemas/notes";
 import {z} from "zod";
-import {ca} from "zod/v4/locales";
+
 
 type AuthRequest = Request & {user?: {id: string}};
 
@@ -19,11 +19,15 @@ export async function createNote(req: AuthRequest, res: Response) {
     const {title, content} = parsed.data;
     const userId = req.user?.id;
 
+    console.log(`Creating note for user ${userId}, title: "${title}"`);
+
     const note = await prisma.note.create({
       data: {title, content, user: {connect: {id: userId}}},
     });
 
-    return res.status(201).json(note);
+    console.log(`Note created successfully with ID: ${note.id}`);
+    return res.status(201).json(note)
+
   } catch (err) {
     console.error("Error while creating note:", err);
     return res.status(500).json({error: "Internal Server Error"});
@@ -35,7 +39,9 @@ export async function getNotes(req: AuthRequest, res: Response) {
     const id = req.params.id;
     const userId = req.user?.id;
 
+    console.log(`Fetching note with ID: ${id} from database`);
     const note = await prisma.note.findUnique({where: {id}});
+    
     if (!note) return res.status(404).json({error: "Note not found"});
 
     if (note.userId !== userId) {
