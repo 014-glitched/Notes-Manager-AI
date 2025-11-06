@@ -4,7 +4,7 @@ import { createNote, getNotes, updateNote, deleteNote } from '../controllers/not
 const router = Router();
 
 router.post('/createNotes', createNote)
-router.get('/getNotes/:id', getNotes)
+router.get('/getNotes', getNotes)
 router.put('/notes/:id', updateNote)
 router.delete('/notes/:id', deleteNote)
 

@@ -36,21 +36,20 @@ export async function createNote(req: AuthRequest, res: Response) {
 
 export async function getNotes(req: AuthRequest, res: Response) {
   try {
-    const id = req.params.id;
     const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
-    console.log(`Fetching note with ID: ${id} from database`);
-    const note = await prisma.note.findUnique({where: {id}});
-    
-    if (!note) return res.status(404).json({error: "Note not found"});
+    console.log(`Fetching all notes for user: ${userId}`);
 
-    if (note.userId !== userId) {
-      return res.status(403).json({error: "Access denied"});
-    }
-    return res.status(200).json(note);
+    const notes = await prisma.note.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" }
+    });
+
+    return res.status(200).json(notes);
   } catch (err) {
-    console.error("Error while fetching note:", err);
-    return res.status(500).json({error: "Internal Server Error"});
+    console.error("Error while fetching notes:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
