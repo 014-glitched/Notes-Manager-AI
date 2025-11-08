@@ -8,8 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy"
+    "migrate:deploy": "prisma migrate deploy",
+    "worker": "ts-node-dev src/workers/embedWorker.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,11 +17,14 @@
   "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@langchain/google-genai": "^1.0.0",
     "@prisma/client": "^6.16.2",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.63.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3",
     "prisma": "^6.16.2",
